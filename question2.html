@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <script src="http://openexchangerates.github.io/money.js/money.min.js"></script>
+    <style>
+        .wrap{
+            width: 900px;
+            margin: 200px auto;
+        }
+        .wrap h1{
+            text-align: center;
+            margin: 100px;
+            color: rgba(0,0,0,0.4);
+        }
+        #inputVal {
+            width: 90px;
+            height: 25px;
+            line-height: 25px;
+            border-radius: 4px;
+            outline: none;
+            border: 1px solid #aeaeae;
+            padding-left: 10px;
+        }
+        select{
+            line-height: 28px;
+            height: 28px;
+        }
+        #change{
+            display: inline-block;
+            line-height: 28px;
+            padding: 0px 10px;
+            border: 1px solid #aeaeae;
+            border-radius: 4px;
+            cursor: pointer;
+            vertical-align: bottom;
+        }
+        #submit{
+            width: 120px;
+            line-height: 24px;
+            border-radius: 4px;
+            outline: none;
+            background: #02b0e9;
+            border: 0;
+            color: #fff;
+            cursor: pointer;
+        }
+        .show{
+            width: 693px;
+            text-align: center;
+            padding: 100px;
+            background: rgba(0,0,0,0.4);
+            margin-top: 30px;
+            font-size: 40px;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>Currency exchange</h1>
+        <div>
+            <input type="number" id="inputVal" placeholder="0">
+            <select id="unit">
+            </select>
+            <span id="change">change direction</span>
+            <select id="toUnit">
+            </select>
+    
+            <button id="submit">conver</button>
+        </div>
+        <div class="show">
+            The exchange amount will be displayed here
+        </div>
+    </div>
+    <script>
+        $(function(){
+            function getGoldName($obj,select){
+                $.ajax({
+                    url: 'http://data.fixer.io/api/symbols?access_key=43a7a55ae3e4c95204628f7a7d28abae',
+                    type: 'get',
+                    dataType: 'json',
+                    success: function(res){
+                        if (res.success){
+                            var str = '';
+                            for (var key in res.symbols){
+                                if (key == select){
+                                    str += '<option value ="'+ key +'" selected="selected">'+ res.symbols[key]+'</option>';
+                                }else{
+                                    str += '<option value ="'+ key +'" >'+ res.symbols[key]+'</option>';
+                                }
+                            }
+                        }
+                        $obj.html(str);
+                    }
+                })
+            }
+            getGoldName($('#unit'),'USD');
+            getGoldName($('#toUnit'),'CNY');
+            $("#submit").click(function(){
+                var unit = $('#unit option:selected').val();
+                var toUnit = $('#toUnit option:selected').val();
+                var inputVal =  $('#inputVal').val();
+                
+                $.ajax({
+                    url: 'http://data.fixer.io/api/latest?access_key=43a7a55ae3e4c95204628f7a7d28abae',
+                    type: 'get',
+                    dataType: 'json',
+                    success: function(data){
+                        if ( typeof fx !== "undefined" && fx.rates ) {
+                            fx.rates = data.rates;
+                            fx.base = data.base;
+                            var gold_num = fx.convert(inputVal, {from: unit, to: toUnit});
+            
+                            $(".show").html(inputVal + unit + '=' + gold_num + toUnit); 
+                        } else {
+                            // If not, apply to fxSetup global:
+                            var fxSetup = {
+                                rates : data.rates,
+                                base : data.base
+                            }
+                        }
+                    }
+                })
+            })
+            $('#change').click(function(){
+                var unit = $('#unit option:selected').val();
+                var toUnit = $('#toUnit option:selected').val();
+                $('#unit option').attr('selected',false);
+                $('#toUnit option').attr('selected',false);
+                $("#unit").find("option[value = '"+ toUnit +"']").attr("selected","selected");
+                $("#toUnit").find("option[value = '"+ unit +"']").attr("selected","selected");
+            })
+        })
+    </script>
+</body>
+</html>
